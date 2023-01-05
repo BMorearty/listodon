@@ -46,7 +46,7 @@
   async function createApp() {
     const body = new FormData();
     body.append('client_name', 'Listodon');
-    body.append('redirect_uris', 'https://lvh.me:5173/');
+    body.append('redirect_uris', 'https://listodon.local:5173/');
     body.append('scopes', scopes);
     // formData.append('website', 'something')
     const appResponse = await fetch(`https://${instance}/api/v1/apps`, { method: 'POST', body });
@@ -67,7 +67,7 @@
     authUrl.search = new URLSearchParams({
       response_type: 'code',
       client_id: clientId,
-      redirect_uri: 'https://lvh.me:5173/',
+      redirect_uri: 'https://listodon.local:5173/',
       scope: scopes,
     }).toString();
     location.assign(authUrl);
@@ -77,7 +77,7 @@
     const body = new FormData();
     body.append('client_id', clientId);
     body.append('client_secret', clientSecret);
-    body.append('redirect_uri', 'https://lvh.me:5173/');
+    body.append('redirect_uri', 'https://listodon.local:5173/');
     body.append('grant_type', 'authorization_code');
     body.append('code', authCode);
     body.append('scope', scopes);
