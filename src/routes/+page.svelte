@@ -1,6 +1,8 @@
 <script lang="ts">
   import { page } from '$app/stores';
 
+  export let data;
+  const { fetch } = data;
   let { url } = $page;
   let authCode = url.searchParams.get('code');
   const localhost = url.href.includes('localhost');
