@@ -1,15 +1,17 @@
 <script lang="ts">
   import { page } from '$app/stores';
-  import { onMount } from 'svelte';
+  import { slide } from 'svelte/transition';
+  import { cubicIn } from 'svelte/easing';
+  import sanitizeHtml from 'sanitize-html';
 
   export let data;
   const { fetch } = data;
   let { url } = $page;
-  const localhost = url.href.includes('localhost');
-  let message = '';
+  const localhost = url.href.includes('local');
   let errors: string[] = [];
   let form: HTMLFormElement;
   let showForm = false;
+  let acct;
   let instance;
   let authCode;
   let scopes = 'read:accounts read:follows read:lists';
@@ -17,25 +19,28 @@
   let clientSecret;
   let token;
 
-  onMount(() => {
+  function load() {
     const cookies = Object.fromEntries(
       document.cookie.split(/; ?/).map((cookie) => cookie.split('=')),
     );
     authCode = cookies['authCode'];
+    acct = cookies['acct'];
     instance = cookies['instance'];
     clientId = cookies['clientId'];
     clientSecret = cookies['clientSecret'];
     token = cookies['token'];
     showForm = !authCode && !token;
 
-    if (token) {
-      verifyCredentials();
+    if (showForm) {
+      return new Promise((resolve) => resolve({}));
+    } else if (token) {
+      return verifyCredentials();
     } else if (authCode) {
-      createToken();
+      return createToken();
     }
-  });
+  }
 
-  function authenticate() {
+  function handleSubmit() {
     instance = form.elements['instance'].value;
     authCode = form.elements['authCode']?.value;
     document.cookie = `instance=${instance}; SameSite=Lax`;
@@ -57,7 +62,7 @@
     const appResponse = await fetch(`https://${instance}/api/v1/apps`, { method: 'POST', body });
     const appJson = await appResponse.json();
     if (!appResponse.ok) {
-      errors = [...errors, `<br>Error creating app: <pre>${JSON.stringify(appJson)}</pre>`];
+      errors = [...errors, `Error creating app: <pre>${JSON.stringify(appJson)}</pre>`];
     } else {
       clientId = appJson['client_id'];
       clientSecret = appJson['client_secret'];
@@ -109,6 +114,8 @@
     if (!verifyResponse.ok) {
       errors = [...errors, `<pre>${JSON.stringify(verifyJson)}</pre>`];
     } else {
+      acct = verifyJson.acct;
+      document.cookie = `acct=${acct}; SameSite=Lax`;
       return getFollowingNotInLists(verifyJson.id);
     }
   }
@@ -142,28 +149,24 @@
     ).flat();
 
     let notInLists = [];
+    let allInLists = false;
+
     for (const userInFollowing of following) {
       if (!usersInLists.some((userInList) => userInList.id === userInFollowing.id)) {
-        notInLists.push(userInFollowing);
+        notInLists = [...notInLists, userInFollowing];
       }
     }
 
     if (notInLists.length === 0) {
-      message = 'Congrats! You have put all your followed users in lists.';
-    } else {
-      message = `You follow these users that you haven’t yet put in a list:<br><br>
-            ${notInLists
-              .map(
-                (user) =>
-                  `<img src='${user.avatar}' width='46' height='46' /><strong>${user.display_name}</strong><br><a href='https://${instance}/@${user.acct}'>${user.acct}</a><br><br>${user.note}`,
-              )
-              .join('<hr>')}`;
+      allInLists = true;
     }
+
+    return { notInLists, allInLists };
   }
 </script>
 
 {#if showForm}
-  <form bind:this={form} on:submit|preventDefault={authenticate}>
+  <form bind:this={form} on:submit|preventDefault={handleSubmit}>
     <label
       >What is your Mastodon instance?
       <input id="instance" name="instance" type="text" />
@@ -183,12 +186,38 @@
 {/if}
 
 <main>
-  <div class="message">
-    {@html message}
-  </div>
-  <div class="errors">
-    {#each errors as error}
-      <div>{@html error}</div>
-    {/each}
-  </div>
+  {#await load()}
+    loading...
+  {:then { notInLists, allInLists }}
+    {#if allInLists}
+      <div class="allInLists">Congrats! You have put all your followed users in lists.</div>
+    {:else if notInLists}
+      <div class="notInLists" transition:slide={{ easing: cubicIn, duration: 200 }}>
+        Your account <span class="acct">@{acct}@{instance}</span> follows these users that you
+        haven’t yet put in a list:
+        <br /><br />
+        {#each notInLists as { avatar, display_name, acct, note }}
+          <img src={avatar} alt={display_name} width="46" height="46" />
+          <strong>{display_name}</strong>
+          <br />
+          <span class="acct"><a href="https://{instance}/@{acct}">{acct}</a></span>
+          <br />
+          {@html sanitizeHtml(note)}
+          <hr />
+        {/each}
+      </div>
+    {/if}
+    <div class="errors">
+      {#each errors as error}
+        <div>{@html error}</div>
+      {/each}
+    </div>
+  {/await}
 </main>
+
+<style>
+  .acct {
+    font-weight: bold;
+    font-family: Consolas, 'Courier New', sans-serif;
+  }
+</style>
