@@ -195,6 +195,9 @@
       <div class="notInLists" transition:slide={{ easing: cubicIn, duration: 200 }}>
         Your account <span class="acct">@{acct}@{instance}</span> follows these users that you
         haven’t yet put in a list:
+        <aside>
+          <a href="/reset">Use a different instance.</a>
+        </aside>
         <br /><br />
         {#each notInLists as { avatar, display_name, acct, note }}
           <img src={avatar} alt={display_name} width="46" height="46" />
@@ -219,5 +222,8 @@
   .acct {
     font-weight: bold;
     font-family: Consolas, 'Courier New', sans-serif;
+  }
+  aside {
+    float: right;
   }
 </style>
