@@ -14,7 +14,6 @@
   onMount(() => {
     if (authCode) {
       document.cookie = `authCode=${authCode}; max-age=10; SameSite=Lax`;
-      console.log({ authCode });
       goto('/');
     } else {
       error = true;

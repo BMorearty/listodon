@@ -22,12 +22,15 @@
       document.cookie.split(/; ?/).map((cookie) => cookie.split('=')),
     );
     authCode = cookies['authCode'];
-    showForm = !authCode;
     instance = cookies['instance'];
     clientId = cookies['clientId'];
     clientSecret = cookies['clientSecret'];
+    token = cookies['token'];
+    showForm = !authCode && !token;
 
-    if (authCode) {
+    if (token) {
+      verifyCredentials();
+    } else if (authCode) {
       createToken();
     }
   });
@@ -93,6 +96,7 @@
     } else {
       token = tokenJson['access_token'];
       showForm = false;
+      document.cookie = `token=${token}; SameSite=Lax`;
       return verifyCredentials();
     }
   }
