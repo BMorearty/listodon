@@ -1,34 +1,36 @@
 <script lang="ts">
   import { page } from '$app/stores';
+  import { onMount } from 'svelte';
 
   export let data;
   const { fetch } = data;
   let { url } = $page;
-  let authCode = url.searchParams.get('code');
   const localhost = url.href.includes('localhost');
   let message = '';
   let errors: string[] = [];
   let form: HTMLFormElement;
-  const cookies = Object.fromEntries(
-    document.cookie.split(/; ?/).map((cookie) => cookie.split('=')),
-  );
-  if (authCode) {
-    document.cookie = `authCode=${authCode}; SameSite=Lax`;
-    // url.search = '';
-    // location.assign(url);
-  } else {
-    authCode ??= cookies['authCode'];
-  }
-  let showForm = !authCode;
-  let instance = cookies['instance'];
-  const scopes = 'read:accounts read:follows read:lists';
-  let clientId = cookies['clientId'];
-  let clientSecret = cookies['clientSecret'];
+  let showForm = false;
+  let instance;
+  let authCode;
+  let scopes = 'read:accounts read:follows read:lists';
+  let clientId;
+  let clientSecret;
   let token;
 
-  if (authCode) {
-    createToken();
-  }
+  onMount(() => {
+    const cookies = Object.fromEntries(
+      document.cookie.split(/; ?/).map((cookie) => cookie.split('=')),
+    );
+    authCode = cookies['authCode'];
+    showForm = !authCode;
+    instance = cookies['instance'];
+    clientId = cookies['clientId'];
+    clientSecret = cookies['clientSecret'];
+
+    if (authCode) {
+      createToken();
+    }
+  });
 
   function authenticate() {
     instance = form.elements['instance'].value;
@@ -46,7 +48,7 @@
   async function createApp() {
     const body = new FormData();
     body.append('client_name', 'Listodon');
-    body.append('redirect_uris', 'https://listodon.local:5173/');
+    body.append('redirect_uris', 'https://listodon.local:5173/code');
     body.append('scopes', scopes);
     // formData.append('website', 'something')
     const appResponse = await fetch(`https://${instance}/api/v1/apps`, { method: 'POST', body });
@@ -67,7 +69,7 @@
     authUrl.search = new URLSearchParams({
       response_type: 'code',
       client_id: clientId,
-      redirect_uri: 'https://listodon.local:5173/',
+      redirect_uri: 'https://listodon.local:5173/code',
       scope: scopes,
     }).toString();
     location.assign(authUrl);
@@ -77,11 +79,14 @@
     const body = new FormData();
     body.append('client_id', clientId);
     body.append('client_secret', clientSecret);
-    body.append('redirect_uri', 'https://listodon.local:5173/');
+    body.append('redirect_uri', 'https://listodon.local:5173/code');
     body.append('grant_type', 'authorization_code');
     body.append('code', authCode);
     body.append('scope', scopes);
-    const tokenResponse = await fetch(`https://${instance}/oauth/token`, { method: 'POST', body });
+    const tokenResponse = await fetch(`https://${instance}/oauth/token`, {
+      method: 'POST',
+      body,
+    });
     const tokenJson = await tokenResponse.json();
     if (!tokenResponse.ok) {
       errors = [...errors, `Error getting access token: <pre>${JSON.stringify(tokenJson)}</pre>`];
@@ -146,7 +151,7 @@
             ${notInLists
               .map(
                 (user) =>
-                  `<img src="${user.avatar}" width="46" height="46" /><strong>${user.display_name}</strong><br><a href="https://${instance}/@${user.acct}">${user.acct}</a><br><br>${user.note}`,
+                  `<img src='${user.avatar}' width='46' height='46' /><strong>${user.display_name}</strong><br><a href='https://${instance}/@${user.acct}'>${user.acct}</a><br><br>${user.note}`,
               )
               .join('<hr>')}`;
     }
