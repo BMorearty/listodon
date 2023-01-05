@@ -56,11 +56,11 @@
       clientSecret = appJson['client_secret'];
       document.cookie = `clientId=${clientId}; SameSite=Lax`;
       document.cookie = `clientSecret=${clientSecret}; SameSite=Lax`;
-      return authorize();
+      authorize();
     }
   }
 
-  async function authorize() {
+  function authorize() {
     const authUrl = new URL(`https://${instance}/oauth/authorize`);
     authUrl.search = new URLSearchParams({
       response_type: 'code',
