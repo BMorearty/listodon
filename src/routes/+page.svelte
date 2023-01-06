@@ -9,7 +9,6 @@
   let { url } = $page;
   const { host } = url;
   const localhost = host.startsWith('listodon.local');
-  let errors: string[] = [];
   let form: HTMLFormElement;
   let showForm = false;
   let acct;
@@ -31,7 +30,7 @@
     return localhost ? host : 'listodon.pages.dev';
   }
 
-  function load(): Promise<{ notInLists: User[] }> {
+  async function load(): Promise<{ notInLists?: User[] }> {
     const cookies = Object.fromEntries(
       document.cookie.split(/; ?/).map((cookie) => cookie.split('=')),
     );
@@ -44,8 +43,7 @@
     showForm = !authCode && !token;
 
     if (showForm) {
-      // Stop showing the loading indicator immediately.
-      return new Promise((resolve) => resolve({}));
+      return {};
     } else if (token) {
       return verifyCredentials();
     } else if (authCode) {
@@ -53,15 +51,15 @@
     }
   }
 
-  function handleSubmit() {
+  async function handleSubmit() {
     instance = form.elements['instance'].value;
     authCode = form.elements['authCode']?.value;
     document.cookie = `instance=${instance}; SameSite=Lax`;
     document.cookie = `authCode=${authCode}; max-age=10; SameSite=Lax`;
     if (!authCode) {
-      createApp();
+      return createApp();
     } else {
-      createToken();
+      return createToken();
     }
   }
 
@@ -75,7 +73,7 @@
     const appResponse = await fetch(`https://${instance}/api/v1/apps`, { method: 'POST', body });
     const appJson = await appResponse.json();
     if (!appResponse.ok) {
-      errors = [...errors, `Error creating app: <pre>${JSON.stringify(appJson)}</pre>`];
+      throw new Error(`Error creating app:\n${JSON.stringify(appJson)}\n`);
     } else {
       clientId = appJson['client_id'];
       clientSecret = appJson['client_secret'];
@@ -110,7 +108,7 @@
     });
     const tokenJson = await tokenResponse.json();
     if (!tokenResponse.ok) {
-      errors = [...errors, `Error getting access token: <pre>${JSON.stringify(tokenJson)}</pre>`];
+      throw new Error(`Error getting access token:\n${JSON.stringify(tokenJson)}`);
     } else {
       token = tokenJson['access_token'];
       showForm = false;
@@ -125,7 +123,7 @@
     });
     const verifyJson = await verifyResponse.json();
     if (!verifyResponse.ok) {
-      errors = [...errors, `<pre>${JSON.stringify(verifyJson)}</pre>`];
+      throw new Error(`${JSON.stringify(verifyJson)}`);
     } else {
       acct = verifyJson.acct;
       document.cookie = `acct=${acct}; SameSite=Lax`;
@@ -257,10 +255,10 @@
           {/each}
         </div>
       {/if}
-      <div class="errors">
-        {#each errors as error}
-          <div class="error">{@html error}</div>
-        {/each}
+    {:catch err}
+      <div class="error">
+        An error occurred communicating with Mastodon.
+        <a href="/reset">Try re-authenticating.</a>
       </div>
     {/await}
   {/if}
@@ -326,5 +324,10 @@
     grid-area: note;
     font-size: small;
     color: #666;
+  }
+  .error {
+    padding: 20px;
+    border: 3px solid firebrick;
+    border-radius: 10px;
   }
 </style>
