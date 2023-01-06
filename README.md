@@ -26,3 +26,7 @@ npm run build
 ```
 
 You can preview the production build with `npm run preview`.
+
+## Deploying
+
+Deploy to Cloudflare Pages. In the environment variables section, set `NODE_VERSION` to `16.19.0`. 

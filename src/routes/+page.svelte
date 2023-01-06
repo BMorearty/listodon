@@ -26,8 +26,9 @@
     display_name: string;
   }
 
+  // On localhost the port number will vary, so check it every time.
   function currentHost() {
-    return localhost ? host : 'todo';
+    return localhost ? host : 'listodon.pages.dev';
   }
 
   function load(): Promise<{ allInLists: boolean; notInLists: User[] }> {
