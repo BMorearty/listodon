@@ -199,7 +199,9 @@
   {:then { notInLists, allInLists }}
     {#if allInLists}
       <div class="topPart">
-        <div class="allInLists">✅ Congrats. You have put all your followed users in lists.</div>
+        <div class="allInLists">
+          ✅ Congrats. You have put all your followed users in lists. Refresh to check again.
+        </div>
         <div class="options">
           <a href="/reset">Use a different account</a>
           <a href="/help">Help</a>
@@ -213,8 +215,8 @@
       <div class="notInLists" in:slide={{ easing: cubicIn, duration: 200 }}>
         <div class="topPart">
           <div>
-            Your account <span class="acct">@{acct}@{instance}</span> follows these users that you haven’t
-            yet put in a list:
+            Your account <span class="yourAcct">@{acct}@{instance}</span> follows these users that you
+            haven’t yet put in a list:
           </div>
           <div class="options">
             <a href="/reset">Use a different account</a>
@@ -241,10 +243,6 @@
 </main>
 
 <style>
-  main {
-    margin-left: 10px;
-    margin-right: 10px;
-  }
   section,
   input[type='submit'] {
     display: block;
@@ -253,9 +251,8 @@
   .displayName {
     font-weight: bold;
   }
-  .acct {
+  .yourAcct {
     font-weight: bold;
-    font-family: Consolas, 'Courier New', sans-serif;
   }
   .topPart {
     display: flex;
@@ -278,14 +275,14 @@
     padding-top: 10px;
   }
   .user {
-    border-top: solid lightcoral 1px;
+    border-top: solid cornflowerblue 1px;
     padding-top: 20px;
     display: grid;
     grid-template-areas:
       'avatar name'
       'avatar acct'
-      'note note';
-    grid-template-columns: 50px auto;
+      '. note';
+    grid-template-columns: 60px auto;
     grid-template-rows: auto;
   }
   .avatar {
@@ -300,5 +297,7 @@
   }
   .note {
     grid-area: note;
+    font-size: small;
+    color: #666;
   }
 </style>
