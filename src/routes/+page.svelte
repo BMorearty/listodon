@@ -18,6 +18,7 @@
   let clientId;
   let clientSecret;
   let token;
+  let cantAuthenticate = false;
   interface User {
     id: string;
     username: string; // short handle
@@ -56,10 +57,16 @@
     authCode = form.elements['authCode']?.value;
     document.cookie = `instance=${instance}; SameSite=Lax`;
     document.cookie = `authCode=${authCode}; max-age=10; SameSite=Lax`;
-    if (!authCode) {
-      return createApp();
-    } else {
-      return createToken();
+    cantAuthenticate = false;
+    try {
+      if (!authCode) {
+        return await createApp();
+      } else {
+        return await createToken();
+      }
+    } catch (err) {
+      cantAuthenticate = true;
+      throw err;
     }
   }
 
@@ -209,6 +216,13 @@
         </section>
       {/if}
       <input type="submit" value="Submit" />
+      {#if cantAuthenticate}
+        <br />
+        <div class="error">
+          Unable to reach that instance. Type only the domain name, such as myinstance.com. Leave
+          off the https and everything else.
+        </div>
+      {/if}
     </form>
   {:else}
     {#await load()}
