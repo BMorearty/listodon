@@ -71,7 +71,7 @@
     body.append('client_name', 'Listodon');
     body.append('redirect_uris', `https://${currentHost()}/code`);
     body.append('scopes', scopes);
-    // formData.append('website', 'something')
+    body.append('website', `https://${currentHost()}`);
     const appResponse = await fetch(`https://${instance}/api/v1/apps`, { method: 'POST', body });
     const appJson = await appResponse.json();
     if (!appResponse.ok) {
