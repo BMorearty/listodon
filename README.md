@@ -1,38 +1,28 @@
-# create-svelte
+# Listodon
 
-Everything you need to build a Svelte project, powered by [`create-svelte`](https://github.com/sveltejs/kit/tree/master/packages/create-svelte).
+Checks if everyone you follow on Mastodon has been put into a List.
 
-## Creating a project
-
-If you're seeing this, you've probably already done this step. Congrats!
-
-```bash
-# create a new project in the current directory
-npm create svelte@latest
-
-# create a new project in my-app
-npm create svelte@latest my-app
-```
+For people who like to read about different topics at different times. E.g. you could have a
+Politics list and a Tech list, so your politics and tech don’t get interingled in your home
+timeline.
 
 ## Developing
 
-Once you've created a project and installed dependencies with `npm install` (or `pnpm install` or `yarn`), start a development server:
+Make and install a self-signed certificate with the domain name `listodon.local`
+for running https on localhost. I don’t remember how I did this.
 
-```bash
-npm run dev
+Add this to `/etc/hosts`:
 
-# or start the server and open the app in a new browser tab
-npm run dev -- --open
+```
+127.0.0.1 listodon.local
 ```
 
-## Building
+Run `pnpm dev` to run the local server.
 
-To create a production version of your app:
+## Building
 
 ```bash
 npm run build
 ```
 
 You can preview the production build with `npm run preview`.
-
-> To deploy your app, you may need to install an [adapter](https://kit.svelte.dev/docs/adapters) for your target environment.
