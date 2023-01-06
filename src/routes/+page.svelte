@@ -7,7 +7,8 @@
   export let data;
   const { fetch } = data;
   let { url } = $page;
-  const localhost = url.href.includes('local');
+  const { host } = url;
+  const localhost = host.startsWith('listodon.local');
   let errors: string[] = [];
   let form: HTMLFormElement;
   let showForm = false;
@@ -23,6 +24,10 @@
     username: string; // short handle
     acct: string; // full handle
     display_name: string;
+  }
+
+  function currentHost() {
+    return localhost ? host : 'todo';
   }
 
   function load(): Promise<{ allInLists: boolean; notInLists: User[] }> {
@@ -63,7 +68,7 @@
   async function createApp() {
     const body = new FormData();
     body.append('client_name', 'Listodon');
-    body.append('redirect_uris', 'https://listodon.local:5173/code');
+    body.append('redirect_uris', `https://${currentHost()}/code`);
     body.append('scopes', scopes);
     // formData.append('website', 'something')
     const appResponse = await fetch(`https://${instance}/api/v1/apps`, { method: 'POST', body });
@@ -84,7 +89,7 @@
     authUrl.search = new URLSearchParams({
       response_type: 'code',
       client_id: clientId,
-      redirect_uri: 'https://listodon.local:5173/code',
+      redirect_uri: `https://${currentHost()}/code`,
       scope: scopes,
     }).toString();
     location.assign(authUrl);
@@ -94,7 +99,7 @@
     const body = new FormData();
     body.append('client_id', clientId);
     body.append('client_secret', clientSecret);
-    body.append('redirect_uri', 'https://listodon.local:5173/code');
+    body.append('redirect_uri', `https://${currentHost()}/code`);
     body.append('grant_type', 'authorization_code');
     body.append('code', authCode);
     body.append('scope', scopes);
@@ -179,14 +184,14 @@
     </div>
     <form bind:this={form} on:submit|preventDefault={handleSubmit}>
       <label
-        >What is your Mastodon instance? E.g., myinstance.com
+        >What is your Mastodon instance? E.g., myinstance.com:
         <input id="instance" name="instance" type="text" />
       </label>
       {#if localhost}
         <!-- On localhost let the user just paste the oauth code.-->
         <section>
           <label
-            >Optionally enter your authorization code
+            >Optionally enter your authorization code:
             <input id="authCode" name="authCode" type="text" />
           </label>
         </section>
