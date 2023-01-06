@@ -219,7 +219,11 @@
       {#if notInLists.length === 0}
         <div class="topPart">
           <div class="allInLists">
-            ✅ Congrats. You have put all your followed users in lists. Refresh to check again.
+            <p>
+              ✅ Congrats. Your account <span class="yourAcct">@{acct}@{instance}</span> has all of its
+              followed users in lists.
+            </p>
+            <p>Refresh to check again.</p>
           </div>
           <div class="options">
             <a href="/reset">Use a different account</a>
@@ -280,6 +284,9 @@
   }
   .topPart div {
     padding-right: 10px;
+  }
+  .allInLists p:first-child {
+    margin-top: 0;
   }
   .options {
     padding: 10px;
