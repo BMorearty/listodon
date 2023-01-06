@@ -133,12 +133,30 @@
     }
   }
 
-  async function getFollowingNotInLists(userId) {
-    const following: User[] = await (
-      await fetch(`https://${instance}/api/v1/accounts/${userId}/following`, {
+  // Paginate through the users this user is following
+  // https://docs.joinmastodon.org/methods/accounts/#following
+  // https://docs.joinmastodon.org/api/guidelines/#pagination
+  async function getFollowingUsers(userId) {
+    let users: User[] = [];
+    let url: string | undefined = `https://${instance}/api/v1/accounts/${userId}/following`;
+    while (url) {
+      const response = await fetch(url, {
         headers: { Authorization: `bearer ${token}` },
-      })
-    ).json();
+      });
+      users = [...users, ...(await response.json())];
+      url = undefined;
+      for (const header of response.headers) {
+        if (header[0].toLowerCase() === 'link') {
+          const match = /<([^>]+)>; rel="next"/.exec(header[1]);
+          url = match && match[1];
+        }
+      }
+    }
+    return users;
+  }
+
+  async function getFollowingNotInLists(userId) {
+    const following: User[] = await getFollowingUsers(userId);
 
     // lists has id and title
     const lists = await (
