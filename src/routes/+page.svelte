@@ -18,8 +18,14 @@
   let clientId;
   let clientSecret;
   let token;
+  interface User {
+    id: string;
+    username: string; // short handle
+    acct: string; // full handle
+    display_name: string;
+  }
 
-  function load() {
+  function load(): Promise<{ allInLists: boolean; notInLists: User[] }> {
     const cookies = Object.fromEntries(
       document.cookie.split(/; ?/).map((cookie) => cookie.split('=')),
     );
@@ -32,6 +38,7 @@
     showForm = !authCode && !token;
 
     if (showForm) {
+      // Stop showing the loading indicator immediately.
       return new Promise((resolve) => resolve({}));
     } else if (token) {
       return verifyCredentials();
@@ -121,8 +128,7 @@
   }
 
   async function getFollowingNotInLists(userId) {
-    // id, username (short handle), acct (full handle), display_name
-    const following = await (
+    const following: User[] = await (
       await fetch(`https://${instance}/api/v1/accounts/${userId}/following`, {
         headers: { Authorization: `bearer ${token}` },
       })
@@ -165,65 +171,134 @@
   }
 </script>
 
-{#if showForm}
-  <form bind:this={form} on:submit|preventDefault={handleSubmit}>
-    <label
-      >What is your Mastodon instance?
-      <input id="instance" name="instance" type="text" />
-    </label>
-    <br />
-    {#if localhost}
-      <!-- On localhost let the user just paste the oauth code.-->
-      <section>
-        <label
-          >Optionally enter your authorization code
-          <input id="authCode" name="authCode" type="text" />
-        </label>
-      </section>
-    {/if}
-    <input type="submit" value="Submit" />
-  </form>
-{/if}
-
 <main>
+  <h1>Listodon</h1>
+  {#if showForm}
+    <div class="options">
+      <a href="/help">Help</a>
+    </div>
+    <form bind:this={form} on:submit|preventDefault={handleSubmit}>
+      <label
+        >What is your Mastodon instance? E.g., myinstance.com
+        <input id="instance" name="instance" type="text" />
+      </label>
+      {#if localhost}
+        <!-- On localhost let the user just paste the oauth code.-->
+        <section>
+          <label
+            >Optionally enter your authorization code
+            <input id="authCode" name="authCode" type="text" />
+          </label>
+        </section>
+      {/if}
+      <input type="submit" value="Submit" />
+    </form>
+  {/if}
   {#await load()}
-    loading...
+    Checking with Mastodon...
   {:then { notInLists, allInLists }}
     {#if allInLists}
-      <div class="allInLists">Congrats! You have put all your followed users in lists.</div>
+      <div class="topPart">
+        <div class="allInLists">✅ Congrats. You have put all your followed users in lists.</div>
+        <div class="options">
+          <a href="/reset">Use a different account</a>
+          <a href="/help">Help</a>
+        </div>
+      </div>
     {:else if notInLists}
-      <div class="notInLists" transition:slide={{ easing: cubicIn, duration: 200 }}>
-        Your account <span class="acct">@{acct}@{instance}</span> follows these users that you
-        haven’t yet put in a list:
-        <aside>
-          <a href="/reset">Use a different instance.</a>
-        </aside>
-        <br /><br />
+      <!--
+        I'd like to use `transition` instead of `in`, but it scrolls up when you navigate to
+        the /help page. https://github.com/sveltejs/kit/issues/628
+      -->
+      <div class="notInLists" in:slide={{ easing: cubicIn, duration: 200 }}>
+        <div class="topPart">
+          <div>
+            Your account <span class="acct">@{acct}@{instance}</span> follows these users that you haven’t
+            yet put in a list:
+          </div>
+          <div class="options">
+            <a href="/reset">Use a different account</a>
+            <a href="/help">Help</a>
+          </div>
+        </div>
+        <br />
         {#each notInLists as { avatar, display_name, acct, note }}
-          <img src={avatar} alt={display_name} width="46" height="46" />
-          <strong>{display_name}</strong>
-          <br />
-          <span class="acct"><a href="https://{instance}/@{acct}">{acct}</a></span>
-          <br />
-          {@html sanitizeHtml(note)}
-          <hr />
+          <div class="user">
+            <img class="avatar" src={avatar} alt={display_name} width="46" height="46" />
+            <span class="displayName">{display_name}</span>
+            <span class="acct"><a href="https://{instance}/@{acct}">@{acct}</a></span>
+            <div class="note">{@html sanitizeHtml(note)}</div>
+          </div>
         {/each}
       </div>
     {/if}
     <div class="errors">
       {#each errors as error}
-        <div>{@html error}</div>
+        <div class="error">{@html error}</div>
       {/each}
     </div>
   {/await}
 </main>
 
 <style>
+  main {
+    margin-left: 10px;
+    margin-right: 10px;
+  }
+  section,
+  input[type='submit'] {
+    display: block;
+    margin-top: 20px;
+  }
+  .displayName {
+    font-weight: bold;
+  }
   .acct {
     font-weight: bold;
     font-family: Consolas, 'Courier New', sans-serif;
   }
-  aside {
+  .topPart {
+    display: flex;
+    justify-content: space-between;
+  }
+  .topPart div {
+    padding-right: 10px;
+  }
+  .options {
+    padding: 10px;
+    position: relative;
+    top: -10px;
     float: right;
+    border: solid lightblue 1px;
+  }
+  .options a {
+    display: block;
+  }
+  .options a:not(:first-child) {
+    padding-top: 10px;
+  }
+  .user {
+    border-top: solid lightcoral 1px;
+    padding-top: 20px;
+    display: grid;
+    grid-template-areas:
+      'avatar name'
+      'avatar acct'
+      'note note';
+    grid-template-columns: 50px auto;
+    grid-template-rows: auto;
+  }
+  .avatar {
+    border-radius: 8px;
+    grid-area: avatar;
+  }
+  .displayName {
+    grid-area: name;
+  }
+  .user .acct {
+    grid-area: acct;
+  }
+  .note {
+    grid-area: note;
   }
 </style>
