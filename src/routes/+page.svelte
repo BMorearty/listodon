@@ -212,53 +212,54 @@
       {/if}
       <input type="submit" value="Submit" />
     </form>
-  {/if}
-  {#await load()}
-    Checking with Mastodon...
-  {:then { notInLists }}
-    {#if notInLists.length === 0}
-      <div class="topPart">
-        <div class="allInLists">
-          ✅ Congrats. You have put all your followed users in lists. Refresh to check again.
-        </div>
-        <div class="options">
-          <a href="/reset">Use a different account</a>
-          <a href="/help">Help</a>
-        </div>
-      </div>
-    {:else if notInLists}
-      <!--
-        I'd like to use `transition` instead of `in`, but it scrolls up when you navigate to
-        the /help page. https://github.com/sveltejs/kit/issues/628
-      -->
-      <div class="notInLists" in:slide={{ easing: cubicIn, duration: 200 }}>
+  {:else}
+    {#await load()}
+      Checking with Mastodon...
+    {:then { notInLists }}
+      {#if notInLists.length === 0}
         <div class="topPart">
-          <div>
-            Your account <span class="yourAcct">@{acct}@{instance}</span> follows these users that you
-            haven’t yet put in a list:
+          <div class="allInLists">
+            ✅ Congrats. You have put all your followed users in lists. Refresh to check again.
           </div>
           <div class="options">
             <a href="/reset">Use a different account</a>
             <a href="/help">Help</a>
           </div>
         </div>
-        <br />
-        {#each notInLists as { avatar, display_name, acct, note }}
-          <div class="user">
-            <img class="avatar" src={avatar} alt={display_name} width="46" height="46" />
-            <span class="displayName">{display_name}</span>
-            <span class="acct"><a href="https://{instance}/@{acct}">@{acct}</a></span>
-            <div class="note">{@html sanitizeHtml(note)}</div>
+      {:else if notInLists}
+        <!--
+        I'd like to use `transition` instead of `in`, but it scrolls up when you navigate to
+        the /help page. https://github.com/sveltejs/kit/issues/628
+      -->
+        <div class="notInLists" in:slide={{ easing: cubicIn, duration: 200 }}>
+          <div class="topPart">
+            <div>
+              Your account <span class="yourAcct">@{acct}@{instance}</span> follows these users that
+              you haven’t yet put in a list:
+            </div>
+            <div class="options">
+              <a href="/reset">Use a different account</a>
+              <a href="/help">Help</a>
+            </div>
           </div>
+          <br />
+          {#each notInLists as { avatar, display_name, acct, note }}
+            <div class="user">
+              <img class="avatar" src={avatar} alt={display_name} width="46" height="46" />
+              <span class="displayName">{display_name}</span>
+              <span class="acct"><a href="https://{instance}/@{acct}">@{acct}</a></span>
+              <div class="note">{@html sanitizeHtml(note)}</div>
+            </div>
+          {/each}
+        </div>
+      {/if}
+      <div class="errors">
+        {#each errors as error}
+          <div class="error">{@html error}</div>
         {/each}
       </div>
-    {/if}
-    <div class="errors">
-      {#each errors as error}
-        <div class="error">{@html error}</div>
-      {/each}
-    </div>
-  {/await}
+    {/await}
+  {/if}
 </main>
 
 <style>
