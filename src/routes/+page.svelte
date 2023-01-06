@@ -31,7 +31,7 @@
     return localhost ? host : 'listodon.pages.dev';
   }
 
-  function load(): Promise<{ allInLists: boolean; notInLists: User[] }> {
+  function load(): Promise<{ notInLists: User[] }> {
     const cookies = Object.fromEntries(
       document.cookie.split(/; ?/).map((cookie) => cookie.split('=')),
     );
@@ -179,7 +179,6 @@
     ).flat();
 
     let notInLists = [];
-    let allInLists = false;
 
     for (const userInFollowing of following) {
       if (!usersInLists.some((userInList) => userInList.id === userInFollowing.id)) {
@@ -187,11 +186,7 @@
       }
     }
 
-    if (notInLists.length === 0) {
-      allInLists = true;
-    }
-
-    return { notInLists, allInLists };
+    return { notInLists };
   }
 </script>
 
@@ -220,8 +215,8 @@
   {/if}
   {#await load()}
     Checking with Mastodon...
-  {:then { notInLists, allInLists }}
-    {#if allInLists}
+  {:then { notInLists }}
+    {#if notInLists.length === 0}
       <div class="topPart">
         <div class="allInLists">
           ✅ Congrats. You have put all your followed users in lists. Refresh to check again.
