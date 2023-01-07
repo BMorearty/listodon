@@ -3,8 +3,8 @@
   import { slide } from 'svelte/transition';
   import { cubicIn } from 'svelte/easing';
   import sanitizeHtml from 'sanitize-html';
-  import { encoded } from '../lib/encoded';
-  import { getCookies } from '../lib/getCookies';
+  import { encoded } from '$lib/encoded';
+  import { getCookies, setCookie } from '$lib/cookies';
   import { onMount } from 'svelte';
 
   export let data;
@@ -63,7 +63,7 @@
   async function handleSubmit() {
     const cookies = getCookies();
     instance = form.elements['instance'].value;
-    document.cookie = `instance=${encoded(instance)}; SameSite=Lax`;
+    setCookie('instance', encoded(instance), { permanent: true });
     if ((token = cookies[`${encoded(instance)}-token`])) {
       // We've already seen this server. Try to verify credentials to see if our old token is valid.
       try {
@@ -109,8 +109,8 @@
     } else {
       clientId = appJson['client_id'];
       clientSecret = appJson['client_secret'];
-      document.cookie = `${encoded(instance)}-clientId=${clientId}; SameSite=Lax`;
-      document.cookie = `${encoded(instance)}-clientSecret=${clientSecret}; SameSite=Lax`;
+      setCookie(`${encoded(instance)}-clientId`, clientId, { permanent: true });
+      setCookie(`${encoded(instance)}-clientSecret`, clientSecret, { permanent: true });
       authorize();
     }
   }
@@ -144,7 +144,7 @@
     } else {
       token = tokenJson['access_token'];
       showForm = false;
-      document.cookie = `${encoded(instance)}-token=${token}; SameSite=Lax`;
+      setCookie(`${encoded(instance)}-token`, token, { permanent: true });
       return verifyCredentials();
     }
   }
@@ -158,7 +158,7 @@
       throw new Error(`${JSON.stringify(verifyJson)}`);
     } else {
       acct = verifyJson.acct;
-      document.cookie = `${encoded(instance)}-acct=${acct}; SameSite=Lax`;
+      setCookie(`${encoded(instance)}-acct`, acct, { permanent: true });
       return getFollowingNotInLists(verifyJson.id);
     }
   }
