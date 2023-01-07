@@ -3,20 +3,10 @@
   import { onMount } from 'svelte';
 
   onMount(() => {
-    deleteAllCookies();
+    // Delete the 'instance' cookie but leave the rest so the user can specify
+    // that instance again in the future and we can look for the existing token
+    // in the token-<instancename> cookie.
+    document.cookie = 'instance=; max-age=0; SameSite=Lax';
     goto('/');
   });
-
-  function deleteAllCookies() {
-    const cookies = document.cookie.split(/; ?/);
-
-    for (let i = 0; i < cookies.length; i++) {
-      const cookie = cookies[i];
-      const eqPos = cookie.indexOf('=');
-      const name = eqPos > -1 ? cookie.substring(0, eqPos) : cookie;
-      if (!name.startsWith('_ga')) {
-        document.cookie = name + '=;expires=Thu, 01 Jan 1970 00:00:00 GMT';
-      }
-    }
-  }
 </script>

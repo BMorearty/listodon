@@ -3,6 +3,8 @@
   import { slide } from 'svelte/transition';
   import { cubicIn } from 'svelte/easing';
   import sanitizeHtml from 'sanitize-html';
+  import { encoded } from '../lib/encoded';
+  import { getCookies } from '../lib/getCookies';
 
   export let data;
   const { fetch } = data;
@@ -32,15 +34,13 @@
   }
 
   async function load(): Promise<{ notInLists?: User[] }> {
-    const cookies = Object.fromEntries(
-      document.cookie.split(/; ?/).map((cookie) => cookie.split('=')),
-    );
-    authCode = cookies['authCode'];
-    acct = cookies['acct'];
+    const cookies = getCookies();
     instance = cookies['instance'];
-    clientId = cookies['clientId'];
-    clientSecret = cookies['clientSecret'];
-    token = cookies['token'];
+    authCode = cookies[`${encoded(instance)}-authCode`];
+    acct = cookies[`${encoded(instance)}-acct`];
+    clientId = cookies[`${encoded(instance)}-clientId`];
+    clientSecret = cookies[`${encoded(instance)}-clientSecret`];
+    token = cookies[`${encoded(instance)}-token`];
     showForm = !authCode && !token;
 
     if (showForm) {
@@ -53,17 +53,23 @@
   }
 
   async function handleSubmit() {
+    const cookies = getCookies();
     instance = form.elements['instance'].value;
-    authCode = form.elements['authCode']?.value;
-    document.cookie = `instance=${instance}; SameSite=Lax`;
-    document.cookie = `authCode=${authCode}; max-age=10; SameSite=Lax`;
+    document.cookie = `instance=${encoded(instance)}; SameSite=Lax`;
+    if ((token = cookies[`${encoded(instance)}-token`])) {
+      // We've already seen this server. Try to verify credentials.
+      try {
+        // Hide the form. This triggers load() to run again.
+        showForm = false;
+        return;
+        // return await verifyCredentials();
+      } catch (err) {
+        // The old credentials didn't work. Let's re-create the app.
+      }
+    }
     cantAuthenticate = false;
     try {
-      if (!authCode) {
-        return await createApp();
-      } else {
-        return await createToken();
-      }
+      return await createApp();
     } catch (err) {
       cantAuthenticate = true;
       throw err;
@@ -84,8 +90,8 @@
     } else {
       clientId = appJson['client_id'];
       clientSecret = appJson['client_secret'];
-      document.cookie = `clientId=${clientId}; SameSite=Lax`;
-      document.cookie = `clientSecret=${clientSecret}; SameSite=Lax`;
+      document.cookie = `${encoded(instance)}-clientId=${clientId}; SameSite=Lax`;
+      document.cookie = `${encoded(instance)}-clientSecret=${clientSecret}; SameSite=Lax`;
       authorize();
     }
   }
@@ -118,9 +124,14 @@
       throw new Error(`Error getting access token:\n${JSON.stringify(tokenJson)}`);
     } else {
       token = tokenJson['access_token'];
-      showForm = false;
-      document.cookie = `token=${token}; SameSite=Lax`;
-      return verifyCredentials();
+      document.cookie = `${encoded(instance)}-token=${token}; SameSite=Lax`;
+      if (showForm) {
+        // This triggers load():
+        showForm = false;
+        return {};
+      } else {
+        return verifyCredentials();
+      }
     }
   }
 
@@ -133,7 +144,7 @@
       throw new Error(`${JSON.stringify(verifyJson)}`);
     } else {
       acct = verifyJson.acct;
-      document.cookie = `acct=${acct}; SameSite=Lax`;
+      document.cookie = `${encoded(instance)}-acct=${acct}; SameSite=Lax`;
       return getFollowingNotInLists(verifyJson.id);
     }
   }
@@ -183,7 +194,7 @@
       )
     ).flat();
 
-    let notInLists = [];
+    let notInLists: User[] = [];
 
     for (const userInFollowing of following) {
       if (!usersInLists.some((userInList) => userInList.id === userInFollowing.id)) {
@@ -206,15 +217,6 @@
         >What is your Mastodon instance? E.g., myinstance.com:
         <input id="instance" name="instance" type="text" />
       </label>
-      {#if localhost}
-        <!-- On localhost let the user just paste the oauth code.-->
-        <section>
-          <label
-            >Optionally enter your authorization code:
-            <input id="authCode" name="authCode" type="text" />
-          </label>
-        </section>
-      {/if}
       <input type="submit" value="Submit" />
       {#if cantAuthenticate}
         <br />

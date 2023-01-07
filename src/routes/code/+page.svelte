@@ -6,6 +6,8 @@
   import { page } from '$app/stores';
   import { goto } from '$app/navigation';
   import { onMount } from 'svelte';
+  import { encoded } from '../../lib/encoded';
+  import { getCookies } from '../../lib/getCookies';
 
   let { url } = $page;
   let error = false;
@@ -13,7 +15,10 @@
 
   onMount(() => {
     if (authCode) {
-      document.cookie = `authCode=${authCode}; max-age=10; SameSite=Lax`;
+      const cookies = getCookies();
+      const instance = cookies['instance'];
+      document.cookie = `${encoded(instance)}-authCode=${authCode}; max-age=10; SameSite=Lax`;
+      document.cookie = `${encoded(instance)}-token=; max-age=0; SameSite=Lax`;
       goto('/');
     } else {
       error = true;
