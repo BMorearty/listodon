@@ -82,15 +82,15 @@
         // before navigating away to Mastodon.
         loaded = promise;
       } catch (err) {
-        // The old credentials didn't work. Let's re-create the app.
-        cantCreateApp = false;
-        try {
-          return await createApp();
-        } catch (err) {
-          cantCreateApp = true;
-          throw err;
-        }
+        // The old credentials didn't work. Let's fall through and re-create the app.
       }
+    }
+    cantCreateApp = false;
+    try {
+      return await createApp();
+    } catch (err) {
+      cantCreateApp = true;
+      throw err;
     }
   }
 
@@ -294,7 +294,6 @@
 </main>
 
 <style>
-  section,
   input[type='submit'] {
     display: block;
     margin-top: 20px;
