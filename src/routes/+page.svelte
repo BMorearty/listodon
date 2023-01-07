@@ -81,6 +81,7 @@
         // enters a failed state and the user will see an error message flash
         // before navigating away to Mastodon.
         loaded = promise;
+        return;
       } catch (err) {
         // The old credentials didn't work. Let's fall through and re-create the app.
       }
