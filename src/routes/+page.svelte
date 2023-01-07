@@ -5,6 +5,7 @@
   import sanitizeHtml from 'sanitize-html';
   import { encoded } from '../lib/encoded';
   import { getCookies } from '../lib/getCookies';
+  import { onMount } from 'svelte';
 
   export let data;
   const { fetch } = data;
@@ -20,20 +21,16 @@
   let clientId;
   let clientSecret;
   let token;
-  let cantAuthenticate = false;
+  let cantCreateApp = false;
   interface User {
     id: string;
     username: string; // short handle
     acct: string; // full handle
     display_name: string;
   }
+  let loaded: Promise<{ notInLists?: User[] }> = new Promise(() => undefined);
 
-  // On localhost the port number will vary, so check it every time.
-  function currentHost() {
-    return localhost ? host : 'listodon.pages.dev';
-  }
-
-  async function load(): Promise<{ notInLists?: User[] }> {
+  onMount(() => {
     const cookies = getCookies();
     instance = cookies['instance'];
     authCode = cookies[`${encoded(instance)}-authCode`];
@@ -43,6 +40,17 @@
     token = cookies[`${encoded(instance)}-token`];
     showForm = !authCode && !token;
 
+    if (!showForm) {
+      loaded = load();
+    }
+  });
+
+  // On localhost the port number will vary, so check it every time.
+  function currentHost() {
+    return localhost ? host : 'listodon.pages.dev';
+  }
+
+  async function load(): Promise<{ notInLists?: User[] }> {
     if (showForm) {
       return {};
     } else if (token) {
@@ -57,22 +65,32 @@
     instance = form.elements['instance'].value;
     document.cookie = `instance=${encoded(instance)}; SameSite=Lax`;
     if ((token = cookies[`${encoded(instance)}-token`])) {
-      // We've already seen this server. Try to verify credentials.
+      // We've already seen this server. Try to verify credentials to see if our old token is valid.
       try {
-        // Hide the form. This triggers load() to run again.
+        // Hide the form so we show the loading indicator.
         showForm = false;
-        return;
-        // return await verifyCredentials();
+
+        // Asynchronously verify credentials.
+        const promise = verifyCredentials();
+
+        // Use await so we can catch.
+        await promise;
+
+        // Only once the promise is resolved do we set loaded and return.
+        // If we set loaded too early and the credentials aren't valid, loaded
+        // enters a failed state and the user will see an error message flash
+        // before navigating away to Mastodon.
+        loaded = promise;
       } catch (err) {
         // The old credentials didn't work. Let's re-create the app.
+        cantCreateApp = false;
+        try {
+          return await createApp();
+        } catch (err) {
+          cantCreateApp = true;
+          throw err;
+        }
       }
-    }
-    cantAuthenticate = false;
-    try {
-      return await createApp();
-    } catch (err) {
-      cantAuthenticate = true;
-      throw err;
     }
   }
 
@@ -124,14 +142,9 @@
       throw new Error(`Error getting access token:\n${JSON.stringify(tokenJson)}`);
     } else {
       token = tokenJson['access_token'];
+      showForm = false;
       document.cookie = `${encoded(instance)}-token=${token}; SameSite=Lax`;
-      if (showForm) {
-        // This triggers load():
-        showForm = false;
-        return {};
-      } else {
-        return verifyCredentials();
-      }
+      return verifyCredentials();
     }
   }
 
@@ -218,7 +231,7 @@
         <input id="instance" name="instance" type="text" />
       </label>
       <input type="submit" value="Submit" />
-      {#if cantAuthenticate}
+      {#if cantCreateApp}
         <br />
         <div class="error">
           Unable to reach that instance. Type only the domain name, such as myinstance.com. Leave
@@ -227,7 +240,7 @@
       {/if}
     </form>
   {:else}
-    {#await load()}
+    {#await loaded}
       Checking with Mastodon...
     {:then { notInLists }}
       {#if notInLists.length === 0}
