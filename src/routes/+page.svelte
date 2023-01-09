@@ -220,6 +220,12 @@
   }
 </script>
 
+<svelte:head>
+  <meta property="og:title" content="Listodon: See who you follow that you haven't put in a list" />
+  <meta property="og:url" content="https://listodon.pages.dev/" />
+  <meta property="og:image" content="https://listodon.pages.dev/screenshot.png" />
+</svelte:head>
+
 <main>
   <h1>Listodon</h1>
   {#if showForm}
