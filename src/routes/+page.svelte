@@ -286,7 +286,7 @@
               <img class="avatar" src={avatar} alt={display_name} width="46" height="46" />
               <span class="displayName">{display_name}</span>
               <span class="acct"><a href="https://{instance}/@{acct}">@{acct}</a></span>
-              <div class="note">{@html sanitizeHtml(note)}</div>
+              <div class="note">{@html sanitizeHtml(note || '<p></p>')}</div>
             </div>
           {/each}
         </div>
