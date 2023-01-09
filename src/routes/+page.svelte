@@ -242,7 +242,8 @@
     </form>
   {:else}
     {#await loaded}
-      Checking with Mastodon...
+      <div>Checking with Mastodon...</div>
+      <img src="Mastodon.png" alt="Mastodon looking left and right" />
     {:then { notInLists }}
       {#if notInLists.length === 0}
         <div class="topPart">
