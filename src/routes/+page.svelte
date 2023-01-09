@@ -224,7 +224,7 @@
   <h1>Listodon</h1>
   {#if showForm}
     <div class="options">
-      <a href="/help" data-sveltekit-prefetch>Help</a>
+      <a href="/help">Help</a>
     </div>
     <form bind:this={form} on:submit|preventDefault={handleSubmit}>
       <label
@@ -255,7 +255,7 @@
           </div>
           <div class="options">
             <a href="/reset">Use a different account</a>
-            <a href="/help" data-sveltekit-prefetch>Help</a>
+            <a href="/help">Help</a>
           </div>
         </div>
       {:else if notInLists}
@@ -271,7 +271,7 @@
             </div>
             <div class="options">
               <a href="/reset">Use a different account</a>
-              <a href="/help" data-sveltekit-prefetch>Help</a>
+              <a href="/help">Help</a>
             </div>
           </div>
           <br />
