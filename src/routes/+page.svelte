@@ -243,7 +243,7 @@
   {:else}
     {#await loaded}
       <div>Checking with Mastodon...</div>
-      <img src="Mastodon.png" alt="Mastodon looking left and right" />
+      <img src="Mastodon.png" alt="Mastodon with shifty eyes" />
     {:then { notInLists }}
       {#if notInLists.length === 0}
         <div class="topPart">

@@ -6,6 +6,8 @@ For people who like to read about different topics at different times. E.g. you 
 Politics list and a Tech list, so your politics and tech don’t get interingled in your home
 timeline.
 
+![Mastodon with shifty eyes](static/Mastodon.png)
+
 ## Developing
 
 Make and install a self-signed certificate with the domain name `listodon.local`
