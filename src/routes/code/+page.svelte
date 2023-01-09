@@ -18,7 +18,7 @@
       const cookies = getCookies();
       const instance = cookies['instance'];
       setCookie(`${encoded(instance)}-authCode`, authCode, { maxAge: 10 });
-      setCookie(`${encoded(instance)}-token`, '', { maxAge: 0 });
+      setCookie(`${encoded(instance)}-token`, '', { del: true });
       goto('/');
     } else {
       error = true;

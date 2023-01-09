@@ -12,7 +12,7 @@ export function setCookie(
     permanent,
   }: { maxAge?: string | number; expiresAt?: string; del?: boolean; permanent?: boolean } = {},
 ) {
-  const sMaxAge = maxAge ? `; max-age=${maxAge.toString}` : '';
+  const sMaxAge = maxAge ? `; max-age=${maxAge.toString()}` : '';
   const sExpiresAt = expiresAt ? `; expires-at=${expiresAt}` : '';
   const sDel = del ? '; max-age=0' : '';
   const sPerm = permanent ? '; expires=Thu, 19 Jan 2038 00:00:00 GMT' : '';
