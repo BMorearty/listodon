@@ -29,7 +29,7 @@
 
 <style>
   .helpimage {
-    width: 200px;
+    height: 375px;
     display: block;
     margin-left: auto;
     margin-right: auto;
