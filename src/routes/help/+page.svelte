@@ -1,8 +1,4 @@
-<script lang="ts">
-  import helpImg from '$lib/assets/help.png';
-</script>
-
-<link rel="preload" href={helpImg} as="image" />
+<link rel="preload" href="$lib/assets/help.png" as="image" />
 
 <h1>How to use Listodon</h1>
 <p>
@@ -27,7 +23,11 @@
   you everyone you haven’t put in a list.
 </p>
 <p>How do you fix it? Follow the link to the person’s profile on Mastodon and click:</p>
-<img src={helpImg} class="helpimage" alt="In Mastodon, click Add or Remove from lists" />
+<img
+  src="$lib/assets/help.png"
+  class="helpimage"
+  alt="In Mastodon, click Add or Remove from lists"
+/>
 <p>You can come back to Listodon any time you want and re-check.</p>
 <div class="madeby">
   Made with ❤️ by <a href="https://techhub.social/@BMorearty">😱 Brian Morearty</a>
