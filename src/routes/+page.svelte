@@ -1,4 +1,5 @@
 <script lang="ts">
+  import mastodonPng from '$lib/assets/Mastodon.png';
   import { page } from '$app/stores';
   import { slide } from 'svelte/transition';
   import { cubicIn } from 'svelte/easing';
@@ -243,7 +244,7 @@
   {:else}
     {#await loaded}
       <div>Checking with Mastodon...</div>
-      <img src="Mastodon.png" alt="Mastodon with shifty eyes" />
+      <img src={mastodonPng} alt="Mastodon with shifty eyes" />
     {:then { notInLists }}
       {#if notInLists.length === 0}
         <div class="topPart">
