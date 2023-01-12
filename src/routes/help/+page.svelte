@@ -1,5 +1,3 @@
-<link rel="preload" href="$lib/assets/help.png" as="image" />
-
 <h1>How to use Listodon</h1>
 <p>
   If you have multiple distinct interests—e.g. politics and tech—and you follow people in both
