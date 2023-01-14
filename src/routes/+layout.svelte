@@ -8,7 +8,7 @@
     max-width: 800px;
     margin-left: auto;
     margin-right: auto;
-    margin-top: 15px;
+    margin-top: 30px;
     padding-left: 10px;
     padding-right: 10px;
   }
