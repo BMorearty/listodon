@@ -22,7 +22,7 @@
 </p>
 <p>How do you fix it? Follow the link to the person’s profile on Mastodon and click:</p>
 <img
-  src="$lib/assets/help.png"
+  src="$lib/assets/help.webp"
   class="helpimage"
   alt="In Mastodon, click Add or Remove from lists"
 />
