@@ -1,7 +1,7 @@
 <script lang="ts">
   import { page } from '$app/stores';
-  import { slide } from 'svelte/transition';
-  import { cubicIn } from 'svelte/easing';
+  import { fly } from 'svelte/transition';
+  import { cubicOut } from 'svelte/easing';
   import sanitizeHtml from 'sanitize-html';
   import { encoded } from '$lib/encoded';
   import { getCookies, setCookie } from '$lib/cookies';
@@ -264,7 +264,7 @@
         I'd like to use `transition` instead of `in`, but it scrolls up when you navigate to
         the /help page. https://github.com/sveltejs/kit/issues/628
       -->
-        <div class="notInLists" in:slide={{ easing: cubicIn, duration: 200 }}>
+        <div class="notInLists" in:fly={{ easing: cubicOut, duration: 250, y: -300 }}>
           <div class="topPart">
             <div>
               Your account <span class="yourAcct">@{acct}@{instance}</span> follows these users that
