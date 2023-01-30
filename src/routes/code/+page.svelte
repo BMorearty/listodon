@@ -11,8 +11,12 @@
   let error = false;
 
   onMount(() => {
+    // slice(1) to get rid of the question mark
     let authCode: string | undefined = Object.fromEntries(
-      document.location.search.split('&').map((param) => param.split('=')),
+      document.location.search
+        .slice(1)
+        .split('&')
+        .map((param) => param.split('=')),
     ).code;
     if (authCode) {
       const cookies = getCookies();
