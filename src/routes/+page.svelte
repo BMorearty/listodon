@@ -7,8 +7,6 @@
   import { getCookies, setCookie } from '$lib/cookies';
   import { onMount } from 'svelte';
 
-  export let data;
-  const { fetch } = data;
   let { url } = $page;
   const { host } = url;
   const localhost = host.startsWith('listodon.local');
