@@ -12,13 +12,13 @@
   const localhost = host.startsWith('listodon.local');
   let form: HTMLFormElement;
   let showForm = false;
-  let acct;
-  let instance;
-  let authCode;
+  let acct: string;
+  let instance: string;
+  let authCode: string;
   let scopes = 'read:accounts read:follows read:lists';
-  let clientId;
-  let clientSecret;
-  let token;
+  let clientId: string;
+  let clientSecret: string;
+  let token: string;
   let cantCreateApp = false;
   interface User {
     id: string;
@@ -164,15 +164,15 @@
   // Paginate through the users this user is following
   // https://docs.joinmastodon.org/methods/accounts/#following
   // https://docs.joinmastodon.org/api/guidelines/#pagination
-  async function getFollowingUsers(userId) {
+  async function getFollowingUsers(userId: number) {
     let users: User[] = [];
-    let url: string | undefined = `https://${instance}/api/v1/accounts/${userId}/following`;
+    let url: string | null = `https://${instance}/api/v1/accounts/${userId}/following`;
     while (url) {
       const response = await fetch(url, {
         headers: { Authorization: `bearer ${token}` },
       });
       users = [...users, ...(await response.json())];
-      url = undefined;
+      url = null;
       for (const header of response.headers) {
         if (header[0].toLowerCase() === 'link') {
           const match = /<([^>]+)>; rel="next"/.exec(header[1]);
@@ -183,7 +183,7 @@
     return users;
   }
 
-  async function getFollowingNotInLists(userId) {
+  async function getFollowingNotInLists(userId: number) {
     const following: User[] = await getFollowingUsers(userId);
 
     // lists has id and title
@@ -243,7 +243,7 @@
       <div>Checking with Mastodon...</div>
       <img src="$lib/assets/Mastodon.webp" alt="Mastodon with shifty eyes" />
     {:then { notInLists }}
-      {#if notInLists.length === 0}
+      {#if !notInLists || notInLists.length === 0}
         <div class="topPart">
           <div class="allInLists">
             <p>
